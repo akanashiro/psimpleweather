@@ -10,6 +10,7 @@ import os
 import urllib
 import sys
 import requests
+import time
 import json
 import sqlite3
 import xml.etree.ElementTree as etree
@@ -20,47 +21,70 @@ from PyQt5.QtCore import *
 # from PyQt5.QtCore import QDir, QUrl, QFileInfo
 from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QLineEdit, QComboBox,
                              QApplication, QGridLayout, QMessageBox, QHBoxLayout, QVBoxLayout)
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QPainter
 
 
 class Ui_Form(object):
     def setupUi(self, Form):
-        Form.setObjectName("Form")
+        Form.setObjectName("Form")  
+        #Form.setWindowFlags(Qt.WindowMaximizeButtonHint | Qt.WindowCloseButtonHint)     
         Form.resize(600, 500)
-        self.tabWidget = QtWidgets.QTabWidget(Form)
-        self.tabWidget.setGeometry(QtCore.QRect(10, 30, 560, 450))
-        self.tabWidget.setTabBarAutoHide(True)
-        self.tabWidget.setObjectName("tabWidget")
-        self.tab = QtWidgets.QWidget()
-        self.tab.setObjectName("tab")
+        
+        self.tabWidget = QtWidgets.QWidget(Form)
+        self.tabWidget.setGeometry(QtCore.QRect(10, 30, 550, 450))
 
         self.gridLayoutWidget = QtWidgets.QWidget(self.tabWidget)
 
-        self.lineEdit = QtWidgets.QLineEdit(self.tab)
-        self.lineEdit.setGeometry(QtCore.QRect(10, 10, 191, 32))
+        self.lineEdit = QtWidgets.QLineEdit(self.tabWidget)
+        #self.lineEdit.setGeometry(QtCore.QRect(10, 1, 191, 32))
         self.lineEdit.setObjectName("lineEdit")
 
-        self.pushButton = QtWidgets.QPushButton(self.tab)
-        self.pushButton.setGeometry(QtCore.QRect(210, 10, 88, 34))
-        self.pushButton.setObjectName("pushButton")
+        self.btnSearch = QtWidgets.QPushButton(self.tabWidget)
+        #self.btnSearch.setGeometry(QtCore.QRect(210, 1, 88, 34))
+        self.btnSearch.setObjectName("btnSearch")
 
-        self.radioBtnToday = QtWidgets.QRadioButton(self.tab)
-        self.radioBtnToday.setGeometry(QtCore.QRect(10, 50, 104, 22))
-        self.radioBtnToday.setObjectName("radioBtnToday")
-        self.radioBtnToday.setChecked(True)
+        self.btnRefresh = QtWidgets.QPushButton(self.tabWidget)
+        iconButton = QtGui.QIcon()        
+        pixmapRefresh = QPixmap(os.path.join(dirname, "icons/refresh.png"))
+        iconButton.addPixmap(pixmapRefresh, QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.btnRefresh.setIcon(iconButton)
+        #self.btnRefresh.setIconSize(QSize(20,20))
+        self.btnRefresh.setToolTip("Refresh")
 
-        self.radioBtnNext = QtWidgets.QRadioButton(self.tab)
-        self.radioBtnNext.setGeometry(QtCore.QRect(170, 50, 104, 22))
-        self.radioBtnNext.setObjectName("radioBtnNext")
-
-        self.textBrowser = QtWidgets.QTextBrowser(self.tab)
+        self.textBrowser = QtWidgets.QTextBrowser(self.tabWidget)
         self.textBrowser.setObjectName("textBrowser")
-        self.textBrowser.setGeometry(QtCore.QRect(10, 110, 520, 300))
+        #self.textBrowser.setGeometry(QtCore.QRect(10, 120, 520, 300))
 
-        self.tabWidget.addTab(self.tab, "")
-        self.tab_2 = QtWidgets.QWidget()
-        self.tab_2.setObjectName("tab_2")
-        self.tabWidget.addTab(self.tab_2, "")
+        # City Label
+        self.labelCity = QtWidgets.QLabel(self.tabWidget)
+        #self.labelCity.setGeometry(QtCore.QRect(280,55,191,20))
+        self.labelCity.setObjectName("labelCity")
+        
+        # Image Label
+        self.labelPixmap = QtWidgets.QLabel(self.tabWidget)
+        #self.labelPixmap.setGeometry(QtCore.QRect(210,60,30,30)) 
+        self.labelPixmap.setObjectName("labelPixmap")
+
+        # Temperature Label
+        self.labelDegrees = QtWidgets.QLabel(self.tabWidget)
+        self.labelDegrees.setObjectName("labelDegrees")
+
+        # Forecast Label
+        self.labelForecast = QtWidgets.QLabel(self.tabWidget)
+        self.labelForecast.setObjectName("labelForecast")
+
+        # Wind Label
+        self.labelWind = QtWidgets.QLabel(self.tabWidget)
+        self.labelWind.setObjectName("labelWind")
+
+        # Pressure Label
+        self.labelPressure = QtWidgets.QLabel(self.tabWidget)
+        self.labelPressure.setObjectName("labelPressure")
+        
+        # YR Label
+        self.labelYR = QtWidgets.QLabel(self.tabWidget)
+        self.labelYR.setObjectName("labelYR")
+        self.labelYR.setText("Weather forecast from Yr, delivered by the Norwegian Meteorological Institute and NRK")
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
@@ -72,36 +96,51 @@ class Ui_Form(object):
         hboxTopLeft.setObjectName("hboxTopLeft")
         hboxTopLeft.addWidget(self.textBrowser)
 
-        # Layout arriba derecha
-        #vboxTopRight = QVBoxLayout()
-        # vboxTopRight.setAlignment(Qt.AlignTop)
-        #vboxTopRight.setContentsMargins(0, -1, -1, 10)
-        #self.pic = QLabel()
-        #pixmap = QPixmap(os.path.join(dirname, "../icons/none.png"))
+        hboxTop = QHBoxLayout()        
+        #hboxTop.addStretch(1)
+        hboxTop.addWidget(self.lineEdit)
+        hboxTop.addWidget(self.btnSearch)
+        hboxTop.addWidget(self.btnRefresh)
+        hboxTop.setObjectName("hboxTop")
 
-        # self.pic.setPixmap(pixmap)
-        # vboxTopRight.addWidget(self.pic)
+        hboxCity = QHBoxLayout()
+        hboxCity.addWidget(self.labelCity)
+        hboxCity.setAlignment(Qt.AlignCenter)
 
-        # Layout que contiene los dos layouts Top
-        #vboxFirst = QHBoxLayout()
-        # vboxFirst.addLayout(hboxTopLeft)
-        # vboxFirst.addLayout(vboxTopRight)
+        hboxWeatherTop = QHBoxLayout()
+        hboxWeatherTop.addWidget(self.labelPixmap)
+        hboxWeatherTop.addWidget(self.labelDegrees)
+        hboxWeatherTop.setAlignment(Qt.AlignCenter)
 
-        #self.gridLayoutWidget.setGeometry(QtCore.QRect(10, 110, 520, 320))
-        #self.gridLayout1 = QtWidgets.QGridLayout(self.gridLayoutWidget)
-        #self.gridLayout1.setContentsMargins(0, 0, 0, 0)
-        #self.gridLayout1.addLayout(vboxFirst, 0, 0)
+        hboxWeatherMiddle = QHBoxLayout()
+        hboxWeatherMiddle.addWidget(self.labelForecast)
+        hboxWeatherMiddle.setAlignment(Qt.AlignCenter)
+
+        hboxWeatherBottom = QHBoxLayout()
+        hboxWeatherBottom.addWidget(self.labelWind)
+        hboxWeatherBottom.addWidget(self.labelPressure)
+        hboxWeatherBottom.setAlignment(Qt.AlignCenter)
+
+        vboxWeather = QVBoxLayout()
+        vboxWeather.addLayout(hboxCity)
+        vboxWeather.addLayout(hboxWeatherTop)
+        vboxWeather.addLayout(hboxWeatherMiddle)
+        vboxWeather.addLayout(hboxWeatherBottom)
+
+        self.gridLayoutWidget.setGeometry(QtCore.QRect(20, 5, 530, 430))
+        self.gridLayout1 = QtWidgets.QGridLayout(self.gridLayoutWidget)
+        self.gridLayout1.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout1.layout().setContentsMargins(0,0,0,0)
+        self.gridLayout1.addLayout(hboxTop, 0, 0)        
+        #self.gridLayout1.addWidget(self.labelCity, 1, 0, Qt.AlignCenter)
+        self.gridLayout1.addLayout(vboxWeather, 1, 0, Qt.AlignCenter)
+        self.gridLayout1.addWidget(self.textBrowser, 2, 0)
+        self.gridLayout1.addWidget(self.labelYR,4,0)
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Pretty Simple AppWeather"))
-        self.pushButton.setText(_translate("Form", "Search"))
-        self.radioBtnToday.setText(_translate("Form", "&Today"))
-        self.radioBtnNext.setText(_translate("Form", "Ne&xt days"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab),
-                                  _translate("Form", "Location 1"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(
-            self.tab_2), _translate("Form", "Location 2"))
+        Form.setWindowTitle(_translate("Form", "Pretty Simple Weather App"))
+        self.btnSearch.setText(_translate("Form", "Search"))
 
 
 class SimpleWeather(QtWidgets.QMainWindow):
@@ -110,8 +149,9 @@ class SimpleWeather(QtWidgets.QMainWindow):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
 
-        # self.ui.pushButton.clicked.connect(self.parseXML)
-        self.ui.pushButton.clicked.connect(self.findCity)
+        # self.ui.btnSearch.clicked.connect(self.parseXML)
+        self.ui.btnSearch.clicked.connect(self.findCity)
+        self.ui.btnRefresh.clicked.connect(self.findCity)
         # self.ui.lineEdit.textChanged.connect(self.findCity)
 
     def geoLocation(self, strLat, strLon):
@@ -141,18 +181,40 @@ class SimpleWeather(QtWidgets.QMainWindow):
 
             textCity = self.ui.lineEdit.text()
             splitCity = textCity.split(",")
-            strCity = splitCity[0].strip()
-            strCountry = splitCity[1].strip()
-            print(strCity.upper())
-            print(strCountry.upper())
-            cursor.execute("select xml from cities where upper(city) like ? and upper(country_descr) like ?",
-                           (strCity.upper(), strCountry.upper()))
+
+            strCity = ""
+            strCountry = ""
+
+            if len(splitCity) > 1:
+                strCity = splitCity[0].strip()
+                strCountry = splitCity[1].strip()
+                #print(strCity.upper())
+                #print(strCountry.upper())
+            else:
+                strCity = splitCity[0].strip()
+                print(strCity.upper())           
+
+
+            if len(splitCity) < 2:
+                cursor.execute("select city, country_descr, xml from cities where upper(city) like ?", (strCity.upper(),))
+            else:
+                cursor.execute("select city, country_descr, xml from cities where upper(city) like ? and upper(country_descr) like ?",
+                            (strCity.upper(), strCountry.upper()))
 
             data = cursor.fetchone()
-            strXml = data[0]
+            
+            # SQL output
+            strOutCity = data [0] # City
+            strOutCountry = data[1] # Country
+            strOutXml = data[2] # XML
+
             db.close()
-            print(strXml)
-            self.parseXML(strXml)
+
+            # Prints the city in the Window
+            self.ui.labelCity.setText(strOutCity + ", " + strOutCountry)
+
+            # print(strOutXml)
+            self.parseXML(strOutXml)
 
     def parseXML(self, inXml):
 
@@ -168,17 +230,25 @@ class SimpleWeather(QtWidgets.QMainWindow):
         # print(root.tag)
         # print(root.attrib)
 
-        html = "<table cellspacing='2'><tbody>"
-        html += "<tr><th width='25'></th><th align='center'>Forecast</th><th align='center'>Temp</th>"
-        html += "<th align='center'>Precipitation</th><th align='center'>Wind</th><th align='center'>Pressure</th></tr>"
-        html += "<tr>"
+        html = "<table cellspacing='2' width = '100%'><tbody>"
+        strIconForecast = "<img src='" + os.path.join(dirname, "icons/time.svg") + "'>"
+        strIconTemp = "<img src='" + os.path.join(dirname, "icons/temp.svg") + "'>"
+        strIconRain = "<img src='" + os.path.join(dirname, "icons/umbrella.svg") + "'>"
+        html += "<tr><th width='35'></th><th align='center'>"+strIconForecast+"</th><th align='center'>"+strIconTemp+"</th>"
+        html += "<th align='center'>"+strIconRain+"</th></tr>" #<th align='center'>Wind</th><th align='center'>Pressure</th></tr>"
+
         self.ui.textBrowser.setText("")
 
         for child in root:
             if child.tag == 'forecast':
                 for tagTabular in child:
+                    i = 1
+                    tempMax = -1000
+                    tempMax2 = -1000
+                    stepBreak = False
                     for tagTime in tagTabular:
-                        # Hora
+                        
+                        # Obtener Fecha Origen
                         strDttmFrom = tagTime.get('from')
                         dtmFrom = datetime.strptime(strDttmFrom, "%Y-%m-%dT%H:%M:%S")
                         dtFrom = dtmFrom.date()
@@ -189,44 +259,28 @@ class SimpleWeather(QtWidgets.QMainWindow):
                         dtTo = dtmTo.date()
                         dtToTime = dtmTo.time()
 
-                        print("Pronóstico de: " + dtFrom.strftime('%d/%m/%Y') +
-                              " a " + dtTo.strftime('%d/%m/%Y'))
-                        # self.ui.textBrowser.append("<strong>Forecast:</strong> " + dtFrom.strftime('%d/%m/%Y') + " " + dtFromTime.strftime(
-                        #    '%H:%M') + " to " + dtTo.strftime('%d/%m/%Y') + " " + dtToTime.strftime('%H:%M'))
-                        strWeather = "<td align='left'>"+dtFrom.strftime('%d/%m/%Y') + " " + dtFromTime.strftime(
-                            '%H:%M') + " to <br>" + dtTo.strftime('%d/%m/%Y') + " " + dtToTime.strftime('%H:%M')+"</td>"
+                        dtToday = time.strftime('%d/%m/%Y')
 
-                        # Ícono
-                        tagSymbol = tagTime.find('symbol')
-                        strDescr = tagSymbol.get('name')
-                        strIcon = tagSymbol.get('var')+".png"
-                        # print('Clima: ' + strDescr)
-                        # self.ui.textBrowser.append("<strong>Clima:</strong> " + strDescr)
-                        strClima = "<td><strong>Weather:</strong> " + strDescr + "</td>"
+                        strPeriod = tagTime.get('period')
+                        nbrPeriod = int(strPeriod)
 
-                        htmlPixmap = "<td align='center'><img src='" + \
-                            os.path.join(dirname, "icons/" + strIcon)+"' width='25'></td>"
-                        # debug only - print(htmlPixmap)
-                        # pic = QLabel(self)
-                        # self.ui.pic.setPixmap(pixmap)
-                        
                         # Temperatura
                         tagTemperature = tagTime.find('temperature')
                         strUnit = tagTemperature.get('unit')
                         strTemperature = tagTemperature.get('value')
                         # print("Temperatura: " + strTemperature + "° " + strUnit)
-                        # self.ui.textBrowser.append(
-                        #    "<strong>Temperature:</strong> " + strTemperature + "° " + strUnit)
-                        strTemperature = "<td align='center'>" + strTemperature + "° C</td>"
+                        
+                        # Ícono
+                        tagSymbol = tagTime.find('symbol')
+                        strForecast = tagSymbol.get('name')
+                        strIcon = tagSymbol.get('var')+".png"
+                        #print("Pronóstico de: " + dtFrom.strftime('%d/%m/%Y') + " a " + dtTo.strftime('%d/%m/%Y'))
 
                         # Precipitación
                         tagPrecipitation = tagTime.find('precipitation')
-                        # print("Precipitación: " + tagPrecipitation.get('value') + " mm")
-                        # self.ui.textBrowser.append(
-                        #    "<strong>Precipitation:</strong> " + tagPrecipitation.get('value') + " mm")
-                        strPrecipation = "<td align='center'>" + \
-                            tagPrecipitation.get('value') + " mm</td>"
-
+                        strPrecipitation = tagPrecipitation.get('value')
+                        # print("Precipitación: " + strPrecipitation + " mm")
+                        
                         # Velocidad del viento
                         tagWindSpeed = tagTime.find('windSpeed')
                         strMps = tagWindSpeed.get('mps')
@@ -234,40 +288,91 @@ class SimpleWeather(QtWidgets.QMainWindow):
 
                         # Dirección del viento
                         tagWindDirection = tagTime.find('windDirection')
-                        strDegree = tagWindDirection.get('deg')
+                        #strDegree = tagWindDirection.get('deg')
                         strDirection = tagWindDirection.get('name')
-                        strWindDirCode = tagWindDirection.get('code')
-
-                        # self.ui.textBrowser.append("<strong>Wind speed & direction: </strong>" +
-                        #                           strMps + " mp/s, " + strWindDirCode)
-                        htmlWind = "<td align='center'>" + strMps + " mp/s, " + strWindDirCode + "</td>"
+                        #strWindDirCode = tagWindDirection.get('code')
 
                         # Presión
                         tagPressure = tagTime.find('pressure')
                         strPresUnit = tagPressure.get('unit')
                         strPresValue = tagPressure.get('value')
-                        # self.ui.textBrowser.append(
-                        #    "<strong>Pressure: </strong>" + strPresValue + " " + strPresUnit)
-                        htmlPressure = "<td align='center'>" + strPresValue + " " + strPresUnit + "</td>"
 
-                        html += htmlPixmap + strWeather + strTemperature + strPrecipation + htmlWind + htmlPressure
+                        #print("hoy " + dtToday)
+                        #print("fecha " + dtFrom.strftime('%d/%m/%Y'))
+                        #print("fecha 2 "+ dtTo.strftime('%d/%m/%Y'))
 
-                        html += "</tr>"
+                        if (dtToday == dtFrom.strftime('%d/%m/%Y') and i==1) or (dtToday != dtFrom.strftime('%d/%m/%Y') and i==1) :
+                            #(dtFrom.strftime('%d/%m/%Y') == dtTo.strftime('%d/%m/%Y')):
+                            
+                            if tempMax < float(strTemperature):
+                                
+                                # Se guarda la temperatura
+                                tempMax = float(strTemperature)
+                            else:
 
-                        if self.ui.radioBtnToday.isChecked():
-                            break
+                                # Icon
+                                pixmap = QPixmap(os.path.join(dirname, "icons/" + strIcon))
+                                pixmap = pixmap.scaled(50,50,Qt.KeepAspectRatio, Qt.FastTransformation)
+                                self.ui.labelPixmap.setPixmap(pixmap)
+                                
+                                # Forecast
+                                print("Forecast: " + strForecast)
+                                self.ui.labelForecast.setText(strForecast)
+
+                                # Temperature
+                                print ("Temperature: " + strTemperature)
+                                self.ui.labelDegrees.setFont(QtGui.QFont("Droid Sans", 20, QtGui.QFont.Bold))
+                                self.ui.labelDegrees.setText(strTemperature  + "° C")
+
+                                # Precipitation
+                                print ("Precipitation: " + strPrecipitation + " mm")
+
+                                # Wind
+                                print (strWind + ", " + strMps + " from " + strDirection)
+                                self.ui.labelWind.setText("Wind: " + strMps)
+
+                                # Pressure
+                                self.ui.labelPressure.setText("Pressure: " + strPresValue + " " + strPresUnit)
+                                i += 1
                         else:
-                            html += "<tr>"
+                            # Próximos días
+                            if dtToday < dtFrom.strftime('%d/%m/%Y'):
+                                if nbrPeriod >= 0 and nbrPeriod <= 3 and stepBreak == False:
+                                    if tempMax2 < float(strTemperature):
+                                        tempMax2 = float(strTemperature)
+                                        
+                                        tdDateFrom = dtFrom.strftime('%d/%m/%Y')
+                                        tdTemperature = strTemperature
+                                        tdForecast = strForecast
+                                        tdPixmap = os.path.join(dirname, "icons/" + strIcon)
+                                        tdPrecipitation = strPrecipitation
 
+                                    if nbrPeriod == 3:
+                                        stepBreak = True
+                                else:
+                                    print("entró por el else")
+                                    html += "<tr>"
+                                    htmlPixmap = "<td align='center'><img src='" + tdPixmap +"' width='25'></td>"
+                                    htmlWeather = "<td align='center'>" + tdDateFrom +"</td>"
+                                    htmlTemperature = "<td align='center'>" + tdTemperature + "° C " + tdForecast + "</td>"
+                                    htmlPrecipitation = "<td align='center'>" + tdPrecipitation + " mm</td>"
+                                    #htmlWind = "<td align='center'>" + strWind + ", " + strMps + " mp/s, " + strDirection + "</td>"
+                                    #htmlPressure = "<td align='center'>" + strPresValue + " " + strPresUnit + "</td>"
+                                    html += htmlPixmap + htmlWeather + htmlTemperature + htmlPrecipitation #+ htmlWind + htmlPressure
+                                    html += "</tr>"
+
+                                    tempMax2 = -1000 # reseteo
+                                    stepBreak = False
                     html += "</tbody></table>"
-                    # debug only - print(html)
+                        
+                    #print(html)
                     self.ui.textBrowser.append(html)
                     break
 
 
 file = sys.argv[0]
 dirname = os.path.dirname(file)
-
+strOutXml = ""
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
