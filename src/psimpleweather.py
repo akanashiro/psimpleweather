@@ -202,19 +202,22 @@ class SimpleWeather(QtWidgets.QMainWindow):
                             (strCity.upper(), strCountry.upper()))
 
             data = cursor.fetchone()
-            
-            # SQL output
-            strOutCity = data [0] # City
-            strOutCountry = data[1] # Country
-            strOutXml = data[2] # XML
 
-            db.close()
+            if data == None:
+                return 
+            else:            
+                # SQL output
+                strOutCity = data [0] # City
+                strOutCountry = data[1] # Country
+                strOutXml = data[2] # XML
 
-            # Prints the city in the Window
-            self.ui.labelCity.setText(strOutCity + ", " + strOutCountry)
+                db.close()
 
-            # print(strOutXml)
-            self.parseXML(strOutXml)
+                # Prints the city in the Window
+                self.ui.labelCity.setText(strOutCity + ", " + strOutCountry)
+
+                # print(strOutXml)
+                self.parseXML(strOutXml)
 
     def parseXML(self, inXml):
 
@@ -257,7 +260,7 @@ class SimpleWeather(QtWidgets.QMainWindow):
                         strDttmTo = tagTime.get('to')
                         dtmTo = datetime.strptime(strDttmTo, "%Y-%m-%dT%H:%M:%S")
                         dtTo = dtmTo.date()
-                        dtToTime = dtmTo.time()
+                        #dtToTime = dtmTo.time()
 
                         dtToday = time.strftime('%d/%m/%Y')
 
@@ -266,7 +269,7 @@ class SimpleWeather(QtWidgets.QMainWindow):
 
                         # Temperatura
                         tagTemperature = tagTime.find('temperature')
-                        strUnit = tagTemperature.get('unit')
+                        #strUnit = tagTemperature.get('unit')
                         strTemperature = tagTemperature.get('value')
                         # print("Temperatura: " + strTemperature + "° " + strUnit)
                         
