@@ -15,12 +15,11 @@ import json
 import sqlite3
 import xml.etree.ElementTree as etree
 
-from datetime import datetime
+from datetime import date, datetime
 from PyQt5 import Qt, QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import *
 # from PyQt5.QtCore import QDir, QUrl, QFileInfo
-from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QLineEdit, QComboBox,
-                             QApplication, QGridLayout, QMessageBox, QHBoxLayout, QVBoxLayout)
+from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QLineEdit, QComboBox, QApplication, QGridLayout, QMessageBox, QHBoxLayout, QVBoxLayout
 from PyQt5.QtGui import QPixmap, QPainter
 
 
@@ -188,11 +187,8 @@ class SimpleWeather(QtWidgets.QMainWindow):
             if len(splitCity) > 1:
                 strCity = splitCity[0].strip()
                 strCountry = splitCity[1].strip()
-                #print(strCity.upper())
-                #print(strCountry.upper())
             else:
-                strCity = splitCity[0].strip()
-                print(strCity.upper())           
+                strCity = splitCity[0].strip()        
 
 
             if len(splitCity) < 2:
@@ -202,9 +198,9 @@ class SimpleWeather(QtWidgets.QMainWindow):
                             (strCity.upper(), strCountry.upper()))
 
             data = cursor.fetchone()
-
+            
             if data == None:
-                return 
+                return None
             else:            
                 # SQL output
                 strOutCity = data [0] # City
@@ -245,7 +241,7 @@ class SimpleWeather(QtWidgets.QMainWindow):
         for child in root:
             if child.tag == 'forecast':
                 for tagTabular in child:
-                    i = 1
+                    boolChange = False
                     tempMax = -1000
                     tempMax2 = -1000
                     stepBreak = False
@@ -255,25 +251,18 @@ class SimpleWeather(QtWidgets.QMainWindow):
                         strDttmFrom = tagTime.get('from')
                         dtmFrom = datetime.strptime(strDttmFrom, "%Y-%m-%dT%H:%M:%S")
                         dtFrom = dtmFrom.date()
-                        dtFromTime = dtmFrom.time()
-
-                        strDttmTo = tagTime.get('to')
-                        dtmTo = datetime.strptime(strDttmTo, "%Y-%m-%dT%H:%M:%S")
-                        dtTo = dtmTo.date()
-                        #dtToTime = dtmTo.time()
-
-                        dtToday = time.strftime('%d/%m/%Y')
+                        dtToday = date.today()
 
                         strPeriod = tagTime.get('period')
                         nbrPeriod = int(strPeriod)
 
-                        # Temperatura
+                        # Temperature
                         tagTemperature = tagTime.find('temperature')
                         #strUnit = tagTemperature.get('unit')
                         strTemperature = tagTemperature.get('value')
                         # print("Temperatura: " + strTemperature + "° " + strUnit)
                         
-                        # Ícono
+                        # Icon
                         tagSymbol = tagTime.find('symbol')
                         strForecast = tagSymbol.get('name')
                         strIcon = tagSymbol.get('var')+".png"
@@ -287,60 +276,60 @@ class SimpleWeather(QtWidgets.QMainWindow):
                         # Velocidad del viento
                         tagWindSpeed = tagTime.find('windSpeed')
                         strMps = tagWindSpeed.get('mps')
-                        strWind = tagWindSpeed.get('name')
+                        #strWind = tagWindSpeed.get('name')
 
-                        # Dirección del viento
-                        tagWindDirection = tagTime.find('windDirection')
+                        # Wind direction
+                        # tagWindDirection = tagTime.find('windDirection')
                         #strDegree = tagWindDirection.get('deg')
-                        strDirection = tagWindDirection.get('name')
+                        #strDirection = tagWindDirection.get('name')
                         #strWindDirCode = tagWindDirection.get('code')
 
-                        # Presión
+                        # Pressure
                         tagPressure = tagTime.find('pressure')
                         strPresUnit = tagPressure.get('unit')
                         strPresValue = tagPressure.get('value')
+                        
+                        comparison1 = dtToday == dtFrom 
+                        comparison2 = dtToday != dtFrom
+   
+                        if (comparison1 and not(boolChange))  or (comparison2 and not(boolChange)):
 
-                        #print("hoy " + dtToday)
-                        #print("fecha " + dtFrom.strftime('%d/%m/%Y'))
-                        #print("fecha 2 "+ dtTo.strftime('%d/%m/%Y'))
-
-                        if (dtToday == dtFrom.strftime('%d/%m/%Y') and i==1) or (dtToday != dtFrom.strftime('%d/%m/%Y') and i==1) :
-                            #(dtFrom.strftime('%d/%m/%Y') == dtTo.strftime('%d/%m/%Y')):
-                            
+                            # Stores max temperature                            
                             if tempMax < float(strTemperature):
-                                
-                                # Se guarda la temperatura
                                 tempMax = float(strTemperature)
-                            else:
-
+                            
+                            # if it reaches the last period, then write the main temperature and icon
+                            if nbrPeriod == 3:
                                 # Icon
                                 pixmap = QPixmap(os.path.join(dirname, "icons/" + strIcon))
                                 pixmap = pixmap.scaled(50,50,Qt.KeepAspectRatio, Qt.FastTransformation)
                                 self.ui.labelPixmap.setPixmap(pixmap)
                                 
                                 # Forecast
-                                print("Forecast: " + strForecast)
+                                #debug only - print("Forecast: " + strForecast)
                                 self.ui.labelForecast.setText(strForecast)
 
                                 # Temperature
-                                print ("Temperature: " + strTemperature)
+                                #debug only - print ("Temperature: " + strTemperature)
                                 self.ui.labelDegrees.setFont(QtGui.QFont("Droid Sans", 20, QtGui.QFont.Bold))
                                 self.ui.labelDegrees.setText(strTemperature  + "° C")
 
                                 # Precipitation
-                                print ("Precipitation: " + strPrecipitation + " mm")
+                                #debug only - print ("Precipitation: " + strPrecipitation + " mm")
 
                                 # Wind
-                                print (strWind + ", " + strMps + " from " + strDirection)
+                                #debug only - print (strWind + ", " + strMps + " from " + strDirection)
                                 self.ui.labelWind.setText("Wind: " + strMps)
 
                                 # Pressure
                                 self.ui.labelPressure.setText("Pressure: " + strPresValue + " " + strPresUnit)
-                                i += 1
+                                boolChange = True
                         else:
-                            # Próximos días
-                            if dtToday < dtFrom.strftime('%d/%m/%Y'):
-                                if nbrPeriod >= 0 and nbrPeriod <= 3 and stepBreak == False:
+                            # Following days
+                            if dtToday < dtFrom:
+                                if nbrPeriod >= 0 and nbrPeriod <= 3:
+                                  
+                                    # stores the max temperature
                                     if tempMax2 < float(strTemperature):
                                         tempMax2 = float(strTemperature)
                                         
@@ -350,25 +339,23 @@ class SimpleWeather(QtWidgets.QMainWindow):
                                         tdPixmap = os.path.join(dirname, "icons/" + strIcon)
                                         tdPrecipitation = strPrecipitation
 
+                                    # When it reaches the last period, it draws a line
                                     if nbrPeriod == 3:
-                                        stepBreak = True
-                                else:
-                                    print("entró por el else")
-                                    html += "<tr>"
-                                    htmlPixmap = "<td align='center'><img src='" + tdPixmap +"' width='25'></td>"
-                                    htmlWeather = "<td align='center'>" + tdDateFrom +"</td>"
-                                    htmlTemperature = "<td align='center'>" + tdTemperature + "° C " + tdForecast + "</td>"
-                                    htmlPrecipitation = "<td align='center'>" + tdPrecipitation + " mm</td>"
-                                    #htmlWind = "<td align='center'>" + strWind + ", " + strMps + " mp/s, " + strDirection + "</td>"
-                                    #htmlPressure = "<td align='center'>" + strPresValue + " " + strPresUnit + "</td>"
-                                    html += htmlPixmap + htmlWeather + htmlTemperature + htmlPrecipitation #+ htmlWind + htmlPressure
-                                    html += "</tr>"
+                                         html += "<tr>"
+                                        htmlPixmap = "<td align='center'><img src='" + tdPixmap +"' width='25'></td>"
+                                        htmlWeather = "<td align='center'>" + tdDateFrom +"</td>"
+                                        htmlTemperature = "<td align='center'>" + tdTemperature + "° C " + tdForecast + "</td>"
+                                        htmlPrecipitation = "<td align='center'>" + tdPrecipitation + " mm</td>"
+                                        #htmlWind = "<td align='center'>" + strWind + ", " + strMps + " mp/s, " + strDirection + "</td>"
+                                        #htmlPressure = "<td align='center'>" + strPresValue + " " + strPresUnit + "</td>"
+                                        html += htmlPixmap + htmlWeather + htmlTemperature + htmlPrecipitation #+ htmlWind + htmlPressure
+                                        html += "</tr>"
 
-                                    tempMax2 = -1000 # reseteo
-                                    stepBreak = False
+                                        tempMax2 = -1000 # reset
+                                        # stepBreak = False
                     html += "</tbody></table>"
                         
-                    #print(html)
+                    # print(html)
                     self.ui.textBrowser.append(html)
                     break
 
