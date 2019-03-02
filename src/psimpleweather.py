@@ -1,11 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'psimpleweather.ui'
-#
-# Created by: PyQt5 UI code generator 5.11.2
-#
-# WARNING! All changes made in this file will be lost!
 import os
 import urllib
 import sys
@@ -16,11 +11,12 @@ import sqlite3
 import xml.etree.ElementTree as etree
 
 from datetime import date, datetime
-from PyQt5 import Qt, QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import *
-# from PyQt5.QtCore import QDir, QUrl, QFileInfo
-from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QLineEdit, QComboBox, QApplication, QGridLayout, QMessageBox, QHBoxLayout, QVBoxLayout
-from PyQt5.QtGui import QPixmap, QPainter
+
+import PySide2
+
+from PySide2.QtCore import Qt, QRect, QCoreApplication, QMetaObject
+from PySide2.QtWidgets import QMainWindow, QWidget, QPushButton, QLabel, QLineEdit, QComboBox,  QApplication, QGridLayout, QMessageBox, QHBoxLayout, QVBoxLayout, QTextBrowser
+from PySide2.QtGui import QPixmap, QPainter, QIcon, QFont
 
 
 class Ui_Form(object):
@@ -29,65 +25,65 @@ class Ui_Form(object):
         #Form.setWindowFlags(Qt.WindowMaximizeButtonHint | Qt.WindowCloseButtonHint)     
         Form.resize(600, 500)
         
-        self.tabWidget = QtWidgets.QWidget(Form)
-        self.tabWidget.setGeometry(QtCore.QRect(10, 30, 550, 450))
+        self.tabWidget = QWidget(Form)
+        self.tabWidget.setGeometry(QRect(10, 30, 550, 450))
 
-        self.gridLayoutWidget = QtWidgets.QWidget(self.tabWidget)
+        self.gridLayoutWidget = QWidget(self.tabWidget)
 
-        self.lineEdit = QtWidgets.QLineEdit(self.tabWidget)
-        #self.lineEdit.setGeometry(QtCore.QRect(10, 1, 191, 32))
+        self.lineEdit = QLineEdit(self.tabWidget)
+        #self.lineEdit.setGeometry(QRect(10, 1, 191, 32))
         self.lineEdit.setObjectName("lineEdit")
 
-        self.btnSearch = QtWidgets.QPushButton(self.tabWidget)
-        #self.btnSearch.setGeometry(QtCore.QRect(210, 1, 88, 34))
+        self.btnSearch = QPushButton(self.tabWidget)
+        #self.btnSearch.setGeometry(QRect(210, 1, 88, 34))
         self.btnSearch.setObjectName("btnSearch")
 
-        self.btnRefresh = QtWidgets.QPushButton(self.tabWidget)
-        iconButton = QtGui.QIcon()        
+        self.btnRefresh = QPushButton(self.tabWidget)
+        iconButton = QIcon()        
         pixmapRefresh = QPixmap(os.path.join(dirname, "icons/refresh.png"))
-        iconButton.addPixmap(pixmapRefresh, QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        iconButton.addPixmap(pixmapRefresh, QIcon.Normal, QIcon.Off)
         self.btnRefresh.setIcon(iconButton)
         #self.btnRefresh.setIconSize(QSize(20,20))
         self.btnRefresh.setToolTip("Refresh")
 
-        self.textBrowser = QtWidgets.QTextBrowser(self.tabWidget)
+        self.textBrowser = QTextBrowser(self.tabWidget)
         self.textBrowser.setObjectName("textBrowser")
-        #self.textBrowser.setGeometry(QtCore.QRect(10, 120, 520, 300))
+        #self.textBrowser.setGeometry(QRect(10, 120, 520, 300))
 
         # City Label
-        self.labelCity = QtWidgets.QLabel(self.tabWidget)
-        #self.labelCity.setGeometry(QtCore.QRect(280,55,191,20))
+        self.labelCity = QLabel(self.tabWidget)
+        #self.labelCity.setGeometry(QRect(280,55,191,20))
         self.labelCity.setObjectName("labelCity")
         
         # Image Label
-        self.labelPixmap = QtWidgets.QLabel(self.tabWidget)
-        #self.labelPixmap.setGeometry(QtCore.QRect(210,60,30,30)) 
+        self.labelPixmap = QLabel(self.tabWidget)
+        #self.labelPixmap.setGeometry(QRect(210,60,30,30)) 
         self.labelPixmap.setObjectName("labelPixmap")
 
         # Temperature Label
-        self.labelDegrees = QtWidgets.QLabel(self.tabWidget)
+        self.labelDegrees = QLabel(self.tabWidget)
         self.labelDegrees.setObjectName("labelDegrees")
 
         # Forecast Label
-        self.labelForecast = QtWidgets.QLabel(self.tabWidget)
+        self.labelForecast = QLabel(self.tabWidget)
         self.labelForecast.setObjectName("labelForecast")
 
         # Wind Label
-        self.labelWind = QtWidgets.QLabel(self.tabWidget)
+        self.labelWind = QLabel(self.tabWidget)
         self.labelWind.setObjectName("labelWind")
 
         # Pressure Label
-        self.labelPressure = QtWidgets.QLabel(self.tabWidget)
+        self.labelPressure = QLabel(self.tabWidget)
         self.labelPressure.setObjectName("labelPressure")
         
         # YR Label
-        self.labelYR = QtWidgets.QLabel(self.tabWidget)
+        self.labelYR = QLabel(self.tabWidget)
         self.labelYR.setObjectName("labelYR")
         self.labelYR.setText("Weather forecast from Yr, delivered by the Norwegian Meteorological Institute and NRK")
 
         self.retranslateUi(Form)
-        QtCore.QMetaObject.connectSlotsByName(Form)
-
+        QMetaObject.connectSlotsByName(Form)
+        
 # ================       LAYOUT       ================
 
         # Layout arriba izquierda
@@ -126,8 +122,8 @@ class Ui_Form(object):
         vboxWeather.addLayout(hboxWeatherMiddle)
         vboxWeather.addLayout(hboxWeatherBottom)
 
-        self.gridLayoutWidget.setGeometry(QtCore.QRect(20, 5, 530, 430))
-        self.gridLayout1 = QtWidgets.QGridLayout(self.gridLayoutWidget)
+        self.gridLayoutWidget.setGeometry(QRect(20, 5, 530, 430))
+        self.gridLayout1 = QGridLayout(self.gridLayoutWidget)
         self.gridLayout1.setContentsMargins(0, 0, 0, 0)
         self.gridLayout1.layout().setContentsMargins(0,0,0,0)
         self.gridLayout1.addLayout(hboxTop, 0, 0)        
@@ -135,14 +131,14 @@ class Ui_Form(object):
         self.gridLayout1.addLayout(vboxWeather, 1, 0, Qt.AlignCenter)
         self.gridLayout1.addWidget(self.textBrowser, 2, 0)
         self.gridLayout1.addWidget(self.labelYR,4,0)
-
+        
     def retranslateUi(self, Form):
-        _translate = QtCore.QCoreApplication.translate
+        _translate = QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Pretty Simple Weather App"))
         self.btnSearch.setText(_translate("Form", "Search"))
 
-
-class SimpleWeather(QtWidgets.QMainWindow):
+        
+class SimpleWeather(QMainWindow):
     def __init__(self):
         super(SimpleWeather, self).__init__()
         self.ui = Ui_Form()
@@ -311,7 +307,7 @@ class SimpleWeather(QtWidgets.QMainWindow):
 
                                 # Temperature
                                 #debug only - print ("Temperature: " + strTemperature)
-                                self.ui.labelDegrees.setFont(QtGui.QFont("Droid Sans", 20, QtGui.QFont.Bold))
+                                self.ui.labelDegrees.setFont(QFont("Droid Sans", 20, QFont.Bold))
                                 self.ui.labelDegrees.setText(strTemperature  + "° C")
 
                                 # Precipitation
@@ -341,7 +337,7 @@ class SimpleWeather(QtWidgets.QMainWindow):
 
                                     # When it reaches the last period, it draws a line
                                     if nbrPeriod == 3:
-                                         html += "<tr>"
+                                        html += "<tr>"
                                         htmlPixmap = "<td align='center'><img src='" + tdPixmap +"' width='25'></td>"
                                         htmlWeather = "<td align='center'>" + tdDateFrom +"</td>"
                                         htmlTemperature = "<td align='center'>" + tdTemperature + "° C " + tdForecast + "</td>"
@@ -365,7 +361,7 @@ dirname = os.path.dirname(file)
 strOutXml = ""
 
 if __name__ == '__main__':
-    app = QtWidgets.QApplication(sys.argv)
+    app = QApplication(sys.argv)
     ex = SimpleWeather()
     ex.show()
-    sys.exit(app.exec())
+    sys.exit(app.exec_())
