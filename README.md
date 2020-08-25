@@ -1,9 +1,9 @@
 # psimpleweather
 Pretty Simple Weather app
 
-I think YR service from the Norwegian Meteorological Institute is one of the most precise weather services around in the web.
+I think YR service from the Norwegian Meteorological Institute is one of the most precise weather services around the web.
 
-I am building a simple application that queries results from YR.no site.
+So I decided to build a simple application that queries results from YR.no site.
 
 Data can be freely consumed from their servers through a service that returns an XML (it is not Soap).
 
